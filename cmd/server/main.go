@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/grafana/datasource-http-backend/cmd/server/service"
+	"github.com/datafuselabs/grafana-databend-datasource/cmd/server/service"
 )
 
 const defaultListenAddr = ":10000"

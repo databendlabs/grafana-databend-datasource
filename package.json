@@ -1,7 +1,7 @@
 {
-  "name": "datasource-http-backend",
+  "name": "datasource-databend",
   "version": "1.0.0",
-  "description": "An example plugin for Grafana",
+  "description": "Grafana datasource plugin for Databend",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
@@ -15,7 +15,7 @@
     "test": "jest --watch --onlyChanged",
     "typecheck": "tsc --noEmit"
   },
-  "author": "Grafana Labs",
+  "author": "Datafuse Labs",
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/core": "^7.21.4",
@@ -65,5 +65,5 @@
     "react-dom": "17.0.2",
     "tslib": "2.5.0"
   },
-  "packageManager": "npm@9.3.1"
+  "packageManager": "yarn@1.22.21"
 }

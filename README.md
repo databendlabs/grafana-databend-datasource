@@ -1,4 +1,4 @@
-# Grafana Data Source Plugin Template
+# Grafana Databend Data Source Plugin
 
 This example queries data from an HTTP API, which returns data in JSON format and then it's converted to data frames.
 

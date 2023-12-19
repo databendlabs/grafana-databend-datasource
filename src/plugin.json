@@ -1,19 +1,20 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
-  "name": "Datasource Http Backend",
-  "id": "grafana-datasourcehttpbackend-datasource",
+  "name": "Datasource Databend",
+  "id": "grafana-databend-datasource",
   "metrics": true,
   "backend": true,
   "alerting": true,
-  "executable": "gpx_datasource_http_backend",
+  "executable": "gpx_datasource_databend",
   "info": {
     "description": "",
     "author": {
-      "name": "Grafana Labs"
+      "name": "Datafuse Labs"
     },
     "keywords": [
-      "datasource"
+      "datasource",
+      "databend"
     ],
     "logos": {
       "small": "img/logo.svg",
@@ -22,11 +23,11 @@
     "links": [
       {
         "name": "Website",
-        "url": "https://github.com/grafana/grafana-starter-datasource"
+        "url": "https://databend.rs"
       },
       {
         "name": "License",
-        "url": "https://github.com/grafana/grafana-starter-datasource/blob/master/LICENSE"
+        "url": "https://github.com/datafuselabs/grafana-databend-datasource/blob/main/LICENSE"
       }
     ],
     "screenshots": [],

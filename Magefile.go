@@ -4,13 +4,13 @@
 package main
 
 import (
-	"github.com/magefile/mage/mg"
-
-	// mage:import
-	build "github.com/grafana/grafana-plugin-sdk-go/build"
-	"github.com/magefile/mage/sh"
 	"os"
 	"path"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
+
+	build "github.com/grafana/grafana-plugin-sdk-go/build"
 )
 
 // Default configures the default target.

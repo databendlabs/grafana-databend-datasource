@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   grafana:
-    container_name: 'grafana-datasourcehttpbackend-datasource'
+    container_name: 'grafana-databend-datasource'
     build:
       context: ./.config
       args:
@@ -11,5 +11,5 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/grafana-datasourcehttpbackend-datasource
+      - ./dist:/var/lib/grafana/plugins/grafana-databend-datasource
       - ./provisioning:/etc/grafana/provisioning

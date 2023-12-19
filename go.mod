@@ -1,4 +1,4 @@
-module github.com/grafana/datasource-http-backend
+module github.com/datafuselabs/grafana-databend-datasource
 
 go 1.20
 

@@ -57,3 +57,12 @@ Then, add a new data source in Grafana and use the following url:
 ```
 http://127.0.0.1:10000/metrics
 ```
+
+
+### Docker
+
+Test your plugin using docker compose:
+
+```bash
+$ docker compose up -d
+```

@@ -1,18 +1,18 @@
 import { CoreApp, DataSourceInstanceSettings } from '@grafana/data';
 
-import { MyQuery, MyDataSourceOptions } from './types';
+import { DatabendQuery, DatabendOptions } from './types';
 import { DataSourceWithBackend } from '@grafana/runtime';
 
-export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+export class DataSource extends DataSourceWithBackend<DatabendQuery, DatabendOptions> {
+  constructor(instanceSettings: DataSourceInstanceSettings<DatabendOptions>) {
     super(instanceSettings);
   }
 
-  getDefaultQuery(app: CoreApp): Partial<MyQuery> {
-    return { multiplier: 1 };
+  getDefaultQuery(app: CoreApp): Partial<DatabendQuery> {
+    return {};
   }
 
-  filterQuery(query: MyQuery): boolean {
+  filterQuery(query: DatabendQuery): boolean {
     if (query.hide) {
       return false;
     }

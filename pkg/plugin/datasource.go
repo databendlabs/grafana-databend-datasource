@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -179,7 +178,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 			return backend.DataResponse{}, fmt.Errorf("unmarshal: %w", err)
 		}
 		q := req.URL.Query()
-		q.Add("multiplier", strconv.Itoa(input.Multiplier))
+		q.Add("sql", input.SQL)
 		req.URL.RawQuery = q.Encode()
 	}
 	httpResp, err := d.httpClient.Do(req)

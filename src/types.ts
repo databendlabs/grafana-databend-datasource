@@ -1,7 +1,15 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataSourceJsonData } from '@grafana/data';
+import { DataQuery } from '@grafana/schema';
 
-export interface MyQuery extends DataQuery {
-  multiplier: number;
+export interface DatabendQuery extends DataQuery {
+  sql: string;
+  timeColumns?: string[];
 }
 
-export interface MyDataSourceOptions extends DataSourceJsonData {}
+export interface DatabendOptions extends DataSourceJsonData {
+  dsn: string;
+}
+
+export interface DatabendSecureOptions {
+  password: string;
+}

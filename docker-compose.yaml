@@ -8,8 +8,7 @@ services:
       args:
         grafana_image: ${GRAFANA_IMAGE:-grafana}
         grafana_version: ${GRAFANA_VERSION:-10.1.0}
-    ports:
-      - 3000:3000/tcp
+    network_mode: host
     volumes:
       - ./dist:/var/lib/grafana/plugins/grafana-databend-datasource
       - ./provisioning:/etc/grafana/provisioning

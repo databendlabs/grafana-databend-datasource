@@ -4,8 +4,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"runtime"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -16,20 +18,19 @@ import (
 // Default configures the default target.
 var Default = build.BuildAll
 
-// Server builds the example server inside cmd/server
-func Server() error {
-	os.Chdir(path.Join("cmd", "server"))
-	defer os.Chdir(path.Join("..", ".."))
-	if err := sh.Run("go", "build", "-v"); err != nil {
-		return err
-	}
-	return nil
+// Build builds the plugin to dist directory for preview with docker compose.
+func Build() error {
+	os.Setenv("GOOS", "linux")
+	// os.Chdir(path.Join("cmd", "server"))
+	// defer os.Chdir(path.Join("..", ".."))
+	output := path.Join("dist", fmt.Sprintf("gpx_databend_linux_%s", runtime.GOARCH))
+	return sh.Run("go", "build", "-v", "-o", output, "pkg/main.go")
 }
 
 // CleanAll runs the 'clean' target and also removes the example server binary in cmd/server
 func CleanAll() error {
 	mg.Deps(build.Clean)
-	return os.Remove(path.Join("cmd", "server", "server"))
+	return nil
 }
 
 // TestAll runs all test for the backend (go test ./...), it's different than 'test', which runs tests only

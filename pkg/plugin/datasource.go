@@ -30,11 +30,6 @@ var (
 	_ instancemgmt.InstanceDisposer = (*Datasource)(nil)
 )
 
-var (
-	errRemoteRequest  = errors.New("remote request error")
-	errRemoteResponse = errors.New("remote response error")
-)
-
 // NewDatasource creates a new datasource instance.
 func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
 	opts, err := settings.HTTPClientOptions(ctx)
@@ -75,8 +70,6 @@ var DatasourceOpts = datasource.ManageOpts{
 	},
 }
 
-// Datasource is an example datasource which can respond to data queries, reports
-// its health and has streaming skills.
 type Datasource struct {
 	settings backend.DataSourceInstanceSettings
 
@@ -115,32 +108,6 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	// loop over queries and execute them individually.
 	for i, q := range req.Queries {
 		ctxLogger.Debug("Processing query", "number", i, "ref", q.RefID)
-
-		if i%2 != 0 {
-			// Just to demonstrate how to return an error with a custom status code.
-			response.Responses[q.RefID] = backend.ErrDataResponse(
-				backend.StatusBadRequest,
-				fmt.Sprintf("user friendly error for query number %v, excluding any sensitive information", i+1),
-			)
-			continue
-		}
-
-		res, err := d.query(ctx, req.PluginContext, q)
-		switch {
-		case err == nil:
-			// break
-		case errors.Is(err, context.DeadlineExceeded):
-			res = backend.ErrDataResponse(backend.StatusTimeout, "gateway timeout")
-		case errors.Is(err, errRemoteRequest):
-			res = backend.ErrDataResponse(backend.StatusBadGateway, "bad gateway request")
-		case errors.Is(err, errRemoteResponse):
-			res = backend.ErrDataResponse(backend.StatusValidationFailed, "bad gateway response")
-		default:
-			res = backend.ErrDataResponse(backend.StatusInternal, err.Error())
-		}
-		// save the response in a hashmap
-		// based on with RefID as identifier
-		response.Responses[q.RefID] = res
 	}
 
 	return response, nil
@@ -188,7 +155,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	case errors.Is(err, context.DeadlineExceeded):
 		return backend.DataResponse{}, err
 	default:
-		return backend.DataResponse{}, fmt.Errorf("http client do: %w: %s", errRemoteRequest, err)
+		return backend.DataResponse{}, fmt.Errorf("http client do:  %s", err)
 	}
 	defer func() {
 		if err := httpResp.Body.Close(); err != nil {
@@ -199,13 +166,13 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	// Make sure the response was successful
 	if httpResp.StatusCode != http.StatusOK {
-		return backend.DataResponse{}, fmt.Errorf("%w: expected 200 response, got %d", errRemoteResponse, httpResp.StatusCode)
+		return backend.DataResponse{}, fmt.Errorf("expected 200 response, got %d", httpResp.StatusCode)
 	}
 
 	// Decode response
 	var body apiMetrics
 	if err := json.NewDecoder(httpResp.Body).Decode(&body); err != nil {
-		return backend.DataResponse{}, fmt.Errorf("%w: decode: %s", errRemoteRequest, err)
+		return backend.DataResponse{}, fmt.Errorf("decode: %s", err)
 	}
 	span.AddEvent("JSON response decoded")
 
@@ -236,23 +203,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 // a 200 OK response.
 func (d *Datasource) CheckHealth(ctx context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
 	ctxLogger := log.DefaultLogger.FromContext(ctx)
-
-	r, err := http.NewRequestWithContext(ctx, http.MethodGet, d.settings.URL, nil)
-	if err != nil {
-		return newHealthCheckErrorf("could not create request"), nil
-	}
-	resp, err := d.httpClient.Do(r)
-	if err != nil {
-		return newHealthCheckErrorf("request error"), nil
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			ctxLogger.Error("check health: failed to close response body", "err", err.Error())
-		}
-	}()
-	if resp.StatusCode != http.StatusOK {
-		return newHealthCheckErrorf("got response code %d", resp.StatusCode), nil
-	}
+	ctxLogger.Info("CheckHealth", "url", d.settings.URL)
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "Data source is working",

@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/grafana/grafana-plugin-sdk-go v0.187.0
 	github.com/magefile/mage v1.15.0
+	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/trace v1.19.0

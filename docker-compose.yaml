@@ -1,6 +1,23 @@
 version: '3.0'
 
 services:
+  databend:
+    container_name: 'databend'
+    image: docker.io/datafuselabs/databend
+    environment:
+      - QUERY_DEFAULT_USER=databend
+      - QUERY_DEFAULT_PASSWORD=databend
+    ports:
+      - 8000:8000
+    volumes:
+      - ./.databend/data:/var/lib/databend
+      - ./.databend/logs:/var/log/databend
+    healthcheck:
+      test: "curl -f localhost:8080/v1/health || exit 1"
+      interval: 2s
+      retries: 10
+      start_period: 2s
+      timeout: 1s
   grafana:
     container_name: 'grafana-databend-datasource'
     build:
@@ -8,7 +25,10 @@ services:
       args:
         grafana_image: ${GRAFANA_IMAGE:-grafana}
         grafana_version: ${GRAFANA_VERSION:-10.1.0}
-    network_mode: host
+    depends_on:
+      - databend
+    ports:
+      - 3000:3000
     volumes:
       - ./dist:/var/lib/grafana/plugins/grafana-databend-datasource
       - ./provisioning:/etc/grafana/provisioning

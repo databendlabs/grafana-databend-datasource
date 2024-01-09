@@ -30,8 +30,8 @@ github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:ma
 github.com/cpuguy83/go-md2man/v2 v2.0.2 h1:p1EgwI/C7NhT0JmVkwCD2ZBK8j4aeHQX2pMHHBfMQ6w=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/datafuselabs/databend-go v0.4.8 h1:rpZtidpcObW7ZZiULSLVN+tT2PPnigNuSYFTeTndOyw=
-github.com/datafuselabs/databend-go v0.4.8/go.mod h1:4UZVMHoTgkdzfnVKWpIFf4UdnnTJ586tBaIeJpXxSNA=
+github.com/datafuselabs/databend-go v0.5.2 h1:IeTBfFYtQdNQRckwcjYDrSRWFPVt+P+qO+IfmN+4PWQ=
+github.com/datafuselabs/databend-go v0.5.2/go.mod h1:4UZVMHoTgkdzfnVKWpIFf4UdnnTJ586tBaIeJpXxSNA=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

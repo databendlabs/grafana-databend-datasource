@@ -1,5 +1,6 @@
 preview:
 	@mkdir -p dist
+	@mkdir -p .databend/{data,logs}
 	@mage build
 	@yarn install
 	@yarn build

@@ -1,0 +1,17 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # https://github.com/grafana/plugin-actions/blob/main/build-plugin/README.md
+      # https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token
+      - uses: grafana/plugin-actions/build-plugin@release
+        with:
+          policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}

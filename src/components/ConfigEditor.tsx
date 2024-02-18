@@ -6,7 +6,7 @@ import {
   onUpdateDatasourceSecureJsonDataOption
 } from '@grafana/data';
 import { ConfigSection, DataSourceDescription } from '@grafana/experimental';
-import { DatabendOptions, DatabendSecureOptions } from '../types';
+import { DatabendOptions, DatabendSecureOptions } from '../types/sql';
 
 export interface Props extends DataSourcePluginOptionsEditorProps<DatabendOptions> { }
 

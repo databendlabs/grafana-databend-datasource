@@ -1,6 +1,6 @@
 import { CoreApp, DataSourceInstanceSettings } from '@grafana/data';
 
-import { DatabendQuery, DatabendOptions } from './types';
+import { DatabendQuery, DatabendOptions } from './types/sql';
 import { DataSourceWithBackend } from '@grafana/runtime';
 
 export class DataSource extends DataSourceWithBackend<DatabendQuery, DatabendOptions> {

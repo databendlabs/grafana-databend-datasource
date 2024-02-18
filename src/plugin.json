@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
   "name": "Databend",
-  "id": "grafana-databend-datasource",
+  "id": "databend-datasource",
   "metrics": true,
   "backend": true,
   "logs": true,

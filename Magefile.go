@@ -12,6 +12,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 
+	// mage:import
 	build "github.com/grafana/grafana-plugin-sdk-go/build"
 )
 
@@ -37,8 +38,4 @@ func CleanAll() error {
 // in the pkg package.
 func TestAll() error {
 	return sh.RunV("go", "test", "./...")
-}
-
-func Coverage() error {
-	return sh.RunV("go", "test", "./...", "-coverprofile=coverage.out")
 }

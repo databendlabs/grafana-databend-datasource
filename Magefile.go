@@ -38,3 +38,7 @@ func CleanAll() error {
 func TestAll() error {
 	return sh.RunV("go", "test", "./...")
 }
+
+func Coverage() error {
+	return sh.RunV("go", "test", "./...", "-coverprofile=coverage.out")
+}

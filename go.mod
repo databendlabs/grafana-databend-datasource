@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/datafuselabs/databend-go v0.7.0
+	github.com/datafuselabs/databend-go v0.7.1
 	github.com/grafana/grafana-plugin-sdk-go v0.236.0
 	github.com/grafana/sqlds/v2 v2.7.2
 	github.com/magefile/mage v1.15.0

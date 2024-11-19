@@ -48,8 +48,8 @@ func (d *Databend) Converters() []sqlutil.Converter {
 // Macros returns list of macro functions convert the macros of raw query
 func (d *Databend) Macros() sqlds.Macros {
 	return map[string]sqlds.MacroFunc{
-		"fromTime":   macros.FromTimeFilter,
-		"toTime":     macros.ToTimeFilter,
+		"timeFrom":   macros.TimeFromFilter,
+		"timeTo":     macros.TimeToFilter,
 		"timeFilter": macros.TimeFilter,
 		"dateFilter": macros.DateFilter,
 	}

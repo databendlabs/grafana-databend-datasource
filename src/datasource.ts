@@ -57,13 +57,9 @@ export class DataSource extends DataSourceWithBackend<
             console.log("Error: " + response.errors[0].message);
             throw new Error(response.errors[0].message);
           }
-          // DEBUG:
-          console.log(`response: ${JSON.stringify(response)}`);
           return response.data;
         }),
         switchMap((data: DataFrame) => {
-          // DEBUG:
-          console.log(`data: ${JSON.stringify(data)}`);
           return data.fields;
         }),
         map((field) =>

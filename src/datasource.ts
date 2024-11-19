@@ -54,7 +54,6 @@ export class DataSource extends DataSourceWithBackend<
       } as DataQueryRequest<DatabendQuery>).pipe(
         switchMap((response) => {
           if (response.errors) {
-            console.log("Error: " + response.errors[0].message);
             throw new Error(response.errors[0].message);
           }
           return response.data;

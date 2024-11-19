@@ -6,7 +6,7 @@
   "metrics": true,
   "backend": true,
   "logs": true,
-  "alerting": true,
+  "alerting": false,
   "annotations": true,
   "executable": "gpx_databend",
   "info": {

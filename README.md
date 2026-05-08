@@ -55,12 +55,6 @@ services:
       - ./databendlabs-databend-datasource:/var/lib/grafana/plugins/databendlabs-databend-datasource
 ```
 
-### Grafana CLI (after plugin is published)
-
-```bash
-grafana cli plugins install databendlabs-databend-datasource
-```
-
 ## Configuration
 
 Connect using a DSN (Data Source Name):

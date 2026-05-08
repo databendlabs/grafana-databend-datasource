@@ -16,7 +16,8 @@
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs",
-      "target": "es5",
+      "target": "es2021",
+      "moduleResolution": "node",
       "esModuleInterop": true
     },
     "transpileOnly": true

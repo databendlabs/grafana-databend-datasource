@@ -44,6 +44,6 @@ jobs:
 
       - uses: grafana/plugin-actions/build-plugin@release
         with:
-          go-version: '1.24'
+          go-version: '1.25'
           node-version: '24'
           # policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}

@@ -11,10 +11,11 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  check-version:
     runs-on: ubuntu-latest
-    env:
-      GOTOOLCHAIN: auto
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      changed: ${{ steps.check.outputs.changed }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -25,8 +26,8 @@ jobs:
         run: |
           CURRENT=$(jq -r .version package.json)
           PREVIOUS=$(git show HEAD~1:package.json 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          echo "version=${CURRENT}" >> "$GITHUB_OUTPUT"
           if [ "$CURRENT" != "$PREVIOUS" ] && [ -n "$CURRENT" ]; then
-            echo "version=${CURRENT}" >> "$GITHUB_OUTPUT"
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -38,13 +39,21 @@ jobs:
           git tag "v${{ steps.check.outputs.version }}"
           git push origin "v${{ steps.check.outputs.version }}"
 
+  release:
+    needs: check-version
+    if: needs.check-version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GOTOOLCHAIN: auto
+      GITHUB_REF: refs/tags/v${{ needs.check-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: v${{ needs.check-version.outputs.version }}
+
       - uses: pnpm/action-setup@v4
-        if: steps.check.outputs.changed == 'true'
 
       - uses: grafana/plugin-actions/build-plugin@release
-        if: steps.check.outputs.changed == 'true'
-        env:
-          GITHUB_REF: refs/tags/v${{ steps.check.outputs.version }}
         with:
           go-version: '1.25'
           node-version: '24'

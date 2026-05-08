@@ -30,5 +30,5 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ./dist:/var/lib/grafana/plugins/grafana-databend-datasource
+      - ./dist:/var/lib/grafana/plugins/databendlabs-databend-datasource
       - ./provisioning:/etc/grafana/provisioning

@@ -2,7 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: Databend
-    type: databend-datasource
+    type: databendlabs-databend-datasource
     access: proxy
     isDefault: true
     jsonData:

@@ -1,101 +1,146 @@
-import React, { useState } from 'react';
-import { QueryEditorProps } from '@grafana/data';
-import { DataSource } from '../datasource';
-import { styles } from 'styles';
-import { DatabendOptions, DatabendQuery } from '../types/sql';
-import { CodeEditor } from '@grafana/ui';
+import React, { useMemo } from 'react';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { InlineField, InlineFieldRow, RadioButtonGroup, Select } from '@grafana/ui';
+import { DatabendDatasource } from '../data/datasource';
+import { DatabendConfig } from '../types/config';
+import { DatabendQuery, EditorType, QueryType, defaultDatabendQuery, queryTypeToFormat } from '../types/sql';
+import { BuilderMode, QueryBuilderOptions } from '../types/queryBuilder';
+import { generateSql } from '../data/sqlGenerator';
+import { SqlEditor } from './SqlEditor';
+import { QueryBuilder } from './queryBuilder/QueryBuilder';
 
-type Props = QueryEditorProps<DataSource, DatabendQuery, DatabendOptions>;
+type Props = QueryEditorProps<DatabendDatasource, DatabendQuery, DatabendConfig>;
 
-interface Expand {
-  height: string;
-  icon: 'plus' | 'minus';
-  on: boolean;
-}
+const editorTypeOptions = [
+  { label: 'SQL', value: EditorType.SQL },
+  { label: 'Builder', value: EditorType.Builder },
+];
 
-export const QueryEditor = (props: Props) => {
-  const defaultHeight = '150px';
-  const { query, onChange } = props;
-  const [codeEditor, setCodeEditor] = useState<any>();
-  const [expand, setExpand] = useState<Expand>({
-    height: defaultHeight,
-    icon: 'plus',
-    on: query.expand || false,
-  });
-  const saveChanges = (changes: Partial<DatabendQuery>) => {
-    onChange({
-      ...query,
+const queryTypeOptions: Array<SelectableValue<QueryType>> = [
+  { label: 'Table', value: QueryType.Table },
+  { label: 'Time Series', value: QueryType.TimeSeries },
+  { label: 'Logs', value: QueryType.Logs },
+  { label: 'Traces', value: QueryType.Traces },
+];
 
-      ...changes
-    });
-  }
+const defaultBuilderOptions: QueryBuilderOptions = {
+  database: '',
+  table: '',
+  queryType: 'table',
+  mode: BuilderMode.List,
+  columns: [],
+  filters: [],
+  orderBy: [],
+  limit: 1000,
+};
 
-  const updateExpand = (expand: Expand) => {
-    setExpand(expand);
-    saveChanges({ expand: expand.on });
-  }
+export const QueryEditor: React.FC<Props> = (props) => {
+  const { query, onChange, onRunQuery, datasource } = props;
 
-  const onToggleExpand = () => {
-    const on = !expand.on;
-    const icon = on ? 'minus' : 'plus';
+  // Ensure query has defaults
+  const currentQuery: DatabendQuery = {
+    ...defaultDatabendQuery,
+    ...query,
+  } as DatabendQuery;
 
-    if (!codeEditor) {
-      return;
+  const editorType = currentQuery.editorType || EditorType.SQL;
+  const queryType = (currentQuery as any).queryType || QueryType.Table;
+
+  const builderOptions: QueryBuilderOptions = useMemo(() => {
+    if (currentQuery.editorType === EditorType.Builder) {
+      return (currentQuery as any).builderOptions || defaultBuilderOptions;
     }
-    if (on) {
-      codeEditor.expanded = true;
-      const height = getEditorHeight(codeEditor);
-      updateExpand({ height: `${height}px`, on, icon });
-      return;
-    }
+    return (currentQuery as any).meta?.builderOptions || defaultBuilderOptions;
+  }, [currentQuery]);
 
-    codeEditor.expanded = false;
-    updateExpand({ height: defaultHeight, icon, on });
+  const generatedSql = useMemo(() => generateSql(builderOptions), [builderOptions]);
+
+  const onEditorTypeChange = (newType: EditorType) => {
+    if (newType === EditorType.Builder) {
+      onChange({
+        ...currentQuery,
+        editorType: EditorType.Builder,
+        builderOptions,
+        rawSql: generatedSql,
+      } as DatabendQuery);
+    } else {
+      onChange({
+        ...currentQuery,
+        editorType: EditorType.SQL,
+        meta: { ...(currentQuery as any).meta, builderOptions },
+      } as DatabendQuery);
+    }
+    onRunQuery();
   };
 
-  const handleMount = (editor: any) => {
-    editor.expanded = query.expand;
-    editor.onDidChangeModelDecorations((a: any) => {
-      if (editor.expanded) {
-        const height = getEditorHeight(editor);
-        updateExpand({ height: `${height}px`, on: true, icon: 'minus' });
-      }
-    });
-    setCodeEditor(editor);
+  const onQueryTypeChange = (value: SelectableValue<QueryType>) => {
+    const newQueryType = value.value || QueryType.Table;
+    onChange({
+      ...currentQuery,
+      queryType: newQueryType,
+      format: queryTypeToFormat(newQueryType),
+    } as DatabendQuery);
+    onRunQuery();
+  };
+
+  const onQueryChange = (updatedQuery: DatabendQuery) => {
+    onChange(updatedQuery);
+    onRunQuery();
+  };
+
+  const onBuilderOptionsChange = (newOptions: QueryBuilderOptions) => {
+    const newSql = generateSql(newOptions);
+    const builderQueryType = newOptions.queryType as unknown as QueryType || QueryType.Table;
+    onChange({
+      ...currentQuery,
+      editorType: EditorType.Builder,
+      builderOptions: newOptions,
+      rawSql: newSql,
+      format: queryTypeToFormat(builderQueryType),
+    } as DatabendQuery);
+    onRunQuery();
   };
 
   return (
     <>
-      <div className={styles.Common.wrapper}>
-        <a
-          onClick={() => onToggleExpand()}
-          className={styles.Common.expand}
-          data-testid={'data-testid-code-editor-expand-button'}
-        >
-          <i className={`fa fa-${expand.icon}`}></i>
-        </a>
-        <CodeEditor
-          aria-label="SQL Editor"
-          height={expand.height}
-          language="sql"
-          value={query.rawSql}
-          onSave={sql => saveChanges({ rawSql: sql })}
-          showMiniMap={false}
-          showLineNumbers={true}
-          onBlur={sql => saveChanges({ rawSql: sql })}
-          onEditorDidMount={(editor: any) => handleMount(editor)}
+      <InlineFieldRow>
+        <InlineField label="Editor" labelWidth={10}>
+          <RadioButtonGroup
+            options={editorTypeOptions}
+            value={editorType}
+            onChange={onEditorTypeChange}
+            size="sm"
+          />
+        </InlineField>
+        <InlineField label="Query Type" labelWidth={12}>
+          <Select
+            width={20}
+            options={queryTypeOptions}
+            value={queryType}
+            onChange={onQueryTypeChange}
+            aria-label="Query Type"
+          />
+        </InlineField>
+      </InlineFieldRow>
+
+      {editorType === EditorType.SQL && (
+        <SqlEditor
+          query={currentQuery}
+          onChange={onQueryChange}
+          onRunQuery={onRunQuery}
+          queryType={queryType}
+          onQueryTypeChange={(qt) => onQueryTypeChange({ value: qt })}
         />
-      </div>
+      )}
+
+      {editorType === EditorType.Builder && (
+        <QueryBuilder
+          datasource={datasource}
+          builderOptions={builderOptions}
+          onBuilderOptionsChange={onBuilderOptionsChange}
+          generatedSql={generatedSql}
+        />
+      )}
     </>
   );
-};
-
-const getEditorHeight = (editor: any): number | undefined => {
-  const editorElement = editor.getDomNode();
-  if (!editorElement) {
-    return;
-  }
-
-  const lineCount = editor.getModel()?.getLineCount() || 1;
-  return editor.getTopForLineNumber(lineCount + 1) + 40;
 };

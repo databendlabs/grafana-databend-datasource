@@ -1,19 +1,19 @@
 import React from 'react';
-import { Divider, Field, Input, SecretInput } from '@grafana/ui';
+import { Divider, Field, Input, SecretInput, Switch } from '@grafana/ui';
 import {
   DataSourcePluginOptionsEditorProps,
   onUpdateDatasourceJsonDataOption,
-  onUpdateDatasourceSecureJsonDataOption
+  onUpdateDatasourceSecureJsonDataOption,
 } from '@grafana/data';
-import { ConfigSection, DataSourceDescription } from '@grafana/experimental';
-import { DatabendOptions, DatabendSecureOptions } from '../types/sql';
+import { ConfigSection, ConfigSubSection } from '@grafana/experimental';
+import { DatabendConfig, DatabendSecureConfig, defaultLogsTable, defaultTracesTable } from '../types/config';
 
-export interface Props extends DataSourcePluginOptionsEditorProps<DatabendOptions> { }
+export interface Props extends DataSourcePluginOptionsEditorProps<DatabendConfig, DatabendSecureConfig> {}
 
 export const ConfigEditor: React.FC<Props> = (props) => {
   const { options, onOptionsChange } = props;
   const { jsonData, secureJsonFields } = options;
-  const secureJsonData = (options.secureJsonData || {}) as DatabendSecureOptions;
+  const secureJsonData = (options.secureJsonData || {}) as DatabendSecureConfig;
 
   const onResetPassword = () => {
     onOptionsChange({
@@ -29,34 +29,39 @@ export const ConfigEditor: React.FC<Props> = (props) => {
     });
   };
 
+  const onJsonDataChange = <K extends keyof DatabendConfig>(key: K, value: DatabendConfig[K]) => {
+    onOptionsChange({
+      ...options,
+      jsonData: {
+        ...jsonData,
+        [key]: value,
+      },
+    });
+  };
+
   return (
     <>
-      <DataSourceDescription
-        dataSourceName="Databend"
-        docsLink="https://github.com/datafuselabs/grafana-databend-datasource"
-        hasRequiredFields
-      />
-      <Divider />
-      <ConfigSection title="Server">
-        <Field required label="DSN" description="Data Source Name" invalid={!jsonData.dsn} error={'DSN is required'}>
+      <ConfigSection title="Connection">
+        <Field
+          required
+          label="DSN"
+          description="Data Source Name (e.g. databend://user:pass@host:8000/database?sslmode=disable)"
+          invalid={!jsonData.dsn}
+          error={'DSN is required'}
+        >
           <Input
             name="dsn"
-            width={50}
+            width={60}
             value={jsonData.dsn || ''}
             onChange={onUpdateDatasourceJsonDataOption(props, 'dsn')}
-            label="Data Source Name"
             aria-label="DSN"
-            placeholder="databend://root:@localhost:8000?sslmode=disable"
+            placeholder="databend://root:@localhost:8000/default?sslmode=disable"
           />
         </Field>
-      </ConfigSection>
-      <Divider />
-      <ConfigSection title="Security">
-        <Field label="SQL User Password" description="Password to Override in DSN">
+        <Field label="Password" description="Password to override in DSN">
           <SecretInput
-            name="pwd"
-            width={50}
-            label="SQL User Password"
+            name="password"
+            width={60}
             aria-label="Password"
             placeholder="password"
             value={secureJsonData.password || ''}
@@ -65,7 +70,172 @@ export const ConfigEditor: React.FC<Props> = (props) => {
             onChange={onUpdateDatasourceSecureJsonDataOption(props, 'password')}
           />
         </Field>
+        <Field label="Default Database" description="Default database to use when none is specified">
+          <Input
+            name="defaultDatabase"
+            width={40}
+            value={jsonData.defaultDatabase || ''}
+            onChange={onUpdateDatasourceJsonDataOption(props, 'defaultDatabase')}
+            aria-label="Default Database"
+            placeholder="default"
+          />
+        </Field>
+        <Field label="Query Timeout" description="Timeout for queries (e.g. 60s, 5m)">
+          <Input
+            name="queryTimeout"
+            width={20}
+            value={jsonData.queryTimeout || ''}
+            onChange={onUpdateDatasourceJsonDataOption(props, 'queryTimeout')}
+            aria-label="Query Timeout"
+            placeholder="60s"
+          />
+        </Field>
+      </ConfigSection>
+
+      <Divider />
+
+      <ConfigSection title="Additional Settings">
+        <Field label="Forward Grafana Headers" description="Forward OAuth/session headers to the datasource">
+          <Switch
+            value={jsonData.forwardGrafanaHeaders || false}
+            onChange={(e) => onJsonDataChange('forwardGrafanaHeaders', e.currentTarget.checked)}
+          />
+        </Field>
+      </ConfigSection>
+
+      <Divider />
+
+      <ConfigSection title="Logs" description="Default settings for log queries">
+        <ConfigSubSection title="Schema">
+          <Field label="Default Log Table">
+            <Input
+              name="logsTable"
+              width={40}
+              value={jsonData.logsTable || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'logsTable')}
+              aria-label="Default Log Table"
+              placeholder={defaultLogsTable}
+            />
+          </Field>
+          <Field label="Time Column" description="Column with the log timestamp">
+            <Input
+              name="logsTimeColumn"
+              width={40}
+              value={jsonData.logsTimeColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'logsTimeColumn')}
+              aria-label="Log Time Column"
+              placeholder="timestamp"
+            />
+          </Field>
+          <Field label="Level Column" description="Column with the log level">
+            <Input
+              name="logsLevelColumn"
+              width={40}
+              value={jsonData.logsLevelColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'logsLevelColumn')}
+              aria-label="Log Level Column"
+              placeholder="level"
+            />
+          </Field>
+          <Field label="Message Column" description="Column with the log message">
+            <Input
+              name="logsMessageColumn"
+              width={40}
+              value={jsonData.logsMessageColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'logsMessageColumn')}
+              aria-label="Log Message Column"
+              placeholder="body"
+            />
+          </Field>
+        </ConfigSubSection>
+      </ConfigSection>
+
+      <Divider />
+
+      <ConfigSection title="Traces" description="Default settings for trace queries">
+        <ConfigSubSection title="Schema">
+          <Field label="Default Traces Table">
+            <Input
+              name="tracesTable"
+              width={40}
+              value={jsonData.tracesTable || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesTable')}
+              aria-label="Default Traces Table"
+              placeholder={defaultTracesTable}
+            />
+          </Field>
+          <Field label="Trace ID Column">
+            <Input
+              name="tracesTraceIdColumn"
+              width={40}
+              value={jsonData.tracesTraceIdColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesTraceIdColumn')}
+              aria-label="Trace ID Column"
+              placeholder="trace_id"
+            />
+          </Field>
+          <Field label="Span ID Column">
+            <Input
+              name="tracesSpanIdColumn"
+              width={40}
+              value={jsonData.tracesSpanIdColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesSpanIdColumn')}
+              aria-label="Span ID Column"
+              placeholder="span_id"
+            />
+          </Field>
+          <Field label="Operation Name Column">
+            <Input
+              name="tracesOperationNameColumn"
+              width={40}
+              value={jsonData.tracesOperationNameColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesOperationNameColumn')}
+              aria-label="Operation Name Column"
+              placeholder="operation_name"
+            />
+          </Field>
+          <Field label="Service Name Column">
+            <Input
+              name="tracesServiceNameColumn"
+              width={40}
+              value={jsonData.tracesServiceNameColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesServiceNameColumn')}
+              aria-label="Service Name Column"
+              placeholder="service_name"
+            />
+          </Field>
+          <Field label="Duration Column">
+            <Input
+              name="tracesDurationColumn"
+              width={40}
+              value={jsonData.tracesDurationColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesDurationColumn')}
+              aria-label="Duration Column"
+              placeholder="duration"
+            />
+          </Field>
+          <Field label="Duration Unit" description="Unit of the duration column (ns, us, ms, s)">
+            <Input
+              name="tracesDurationUnit"
+              width={20}
+              value={jsonData.tracesDurationUnit || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesDurationUnit')}
+              aria-label="Duration Unit"
+              placeholder="ms"
+            />
+          </Field>
+          <Field label="Start Time Column">
+            <Input
+              name="tracesStartTimeColumn"
+              width={40}
+              value={jsonData.tracesStartTimeColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesStartTimeColumn')}
+              aria-label="Start Time Column"
+              placeholder="timestamp"
+            />
+          </Field>
+        </ConfigSubSection>
       </ConfigSection>
     </>
   );
-}
+};

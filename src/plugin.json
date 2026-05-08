@@ -6,18 +6,17 @@
   "metrics": true,
   "backend": true,
   "logs": true,
-  "alerting": false,
+  "traces": true,
+  "alerting": true,
   "annotations": true,
   "executable": "gpx_databend",
+  "category": "sql",
   "info": {
     "description": "Databend datasource plugin for Grafana",
     "author": {
       "name": "Datafuse Labs"
     },
-    "keywords": [
-      "datasource",
-      "databend"
-    ],
+    "keywords": ["datasource", "databend", "sql"],
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
@@ -42,7 +41,7 @@
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": ">=10.1.0",
+    "grafanaDependency": ">=11.0.0",
     "plugins": []
   }
 }

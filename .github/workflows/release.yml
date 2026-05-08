@@ -2,8 +2,10 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+    branches:
+      - main
+    paths:
+      - 'package.json'
 
 permissions:
   contents: write
@@ -12,9 +14,35 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # https://github.com/grafana/plugin-actions/blob/main/build-plugin/README.md
-      # https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Check version change
+        id: check
+        run: |
+          CURRENT=$(jq -r .version package.json)
+          PREVIOUS=$(git show HEAD~1:package.json 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          if [ "$CURRENT" != "$PREVIOUS" ] && [ -n "$CURRENT" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create tag
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          VERSION="v${{ steps.check.outputs.current }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+
+      - uses: pnpm/action-setup@v4
+        if: steps.check.outputs.changed == 'true'
+
       - uses: grafana/plugin-actions/build-plugin@release
+        if: steps.check.outputs.changed == 'true'
         # with:
         #   policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}

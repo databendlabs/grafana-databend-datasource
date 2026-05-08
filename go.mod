@@ -1,4 +1,4 @@
-module github.com/datafuselabs/grafana-databend-datasource
+module github.com/databendlabs/grafana-databend-datasource
 
 go 1.24.6
 

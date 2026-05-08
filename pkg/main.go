@@ -6,7 +6,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 
-	"github.com/datafuselabs/grafana-databend-datasource/pkg/plugin"
+	"github.com/databendlabs/grafana-databend-datasource/pkg/plugin"
 )
 
 func main() {

@@ -12,8 +12,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/data/sqlutil"
 	"github.com/grafana/sqlds/v4"
 
-	"github.com/datafuselabs/grafana-databend-datasource/pkg/converters"
-	"github.com/datafuselabs/grafana-databend-datasource/pkg/macros"
+	"github.com/databendlabs/grafana-databend-datasource/pkg/converters"
+	"github.com/databendlabs/grafana-databend-datasource/pkg/macros"
 )
 
 // Databend defines how to connect to a Databend datasource

@@ -7,7 +7,6 @@
 
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import ESLintPlugin from 'eslint-webpack-plugin';
-import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import LiveReloadPlugin from 'webpack-livereload-plugin';
 import path from 'path';
 import ReplaceInFileWebpackPlugin from 'replace-in-file-webpack-plugin';
@@ -81,7 +80,7 @@ const config = async (env): Promise<Configuration> => ({
           loader: 'swc-loader',
           options: {
             jsc: {
-              baseUrl: './src',
+              baseUrl: path.resolve(process.cwd(), 'src'),
               target: 'es2015',
               loose: false,
               parser: {
@@ -176,18 +175,13 @@ const config = async (env): Promise<Configuration> => ({
         ],
       },
     ]),
-    new ForkTsCheckerWebpackPlugin({
-      async: Boolean(env.development),
-      issue: {
-        include: [{ file: '**/*.{ts,tsx}' }],
-      },
-      typescript: { configFile: path.join(process.cwd(), 'tsconfig.json') },
-    }),
-    new ESLintPlugin({
-      extensions: ['.ts', '.tsx'],
-      lintDirtyModulesOnly: Boolean(env.development), // don't lint on start, only lint changed files
-    }),
-    ...(env.development ? [new LiveReloadPlugin()] : []),
+    ...(env.development ? [
+      new ESLintPlugin({
+        extensions: ['.ts', '.tsx'],
+        lintDirtyModulesOnly: true,
+      }),
+      new LiveReloadPlugin(),
+    ] : []),
   ],
 
   resolve: {

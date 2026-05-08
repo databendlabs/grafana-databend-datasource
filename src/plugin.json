@@ -14,7 +14,7 @@
   "info": {
     "description": "Databend datasource plugin for Grafana",
     "author": {
-      "name": "Datafuse Labs"
+      "name": "Databend Labs"
     },
     "keywords": ["datasource", "databend", "sql"],
     "logos": {
@@ -24,11 +24,11 @@
     "links": [
       {
         "name": "Website",
-        "url": "https://github.com/datafuselabs/grafana-databend-datasource"
+        "url": "https://github.com/databendlabs/grafana-databend-datasource"
       },
       {
         "name": "License",
-        "url": "https://github.com/datafuselabs/grafana-databend-datasource/blob/main/LICENSE"
+        "url": "https://github.com/databendlabs/grafana-databend-datasource/blob/main/LICENSE"
       }
     ],
     "screenshots": [

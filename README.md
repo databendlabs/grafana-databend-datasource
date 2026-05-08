@@ -1,6 +1,6 @@
 # Grafana Databend Data Source Plugin
 
-The Databend data source plugin for Grafana allows you to visualize data from [Databend](https://databend.rs) in Grafana.
+The Databend data source plugin for Grafana allows you to visualize data from [Databend](https://databend.com) in Grafana.
 
 Supports both **Databend** (self-hosted) and **Databend Cloud**.
 

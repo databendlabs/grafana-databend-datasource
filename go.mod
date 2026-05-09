@@ -3,7 +3,7 @@ module github.com/databendlabs/grafana-databend-datasource
 go 1.25.7
 
 require (
-	github.com/datafuselabs/databend-go v0.9.2
+	github.com/datafuselabs/databend-go v0.9.3
 	github.com/grafana/grafana-plugin-sdk-go v0.292.0
 	github.com/grafana/sqlds/v4 v4.1.3
 	github.com/magefile/mage v1.17.2

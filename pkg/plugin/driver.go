@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/url"
 
-	_ "github.com/datafuselabs/databend-go"
+	godatabend "github.com/datafuselabs/databend-go"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/grafana/grafana-plugin-sdk-go/data/sqlutil"
@@ -15,6 +15,8 @@ import (
 	"github.com/databendlabs/grafana-databend-datasource/pkg/converters"
 	"github.com/databendlabs/grafana-databend-datasource/pkg/macros"
 )
+
+const userAgent = "grafana-databend-datasource"
 
 // Databend defines how to connect to a Databend datasource
 type Databend struct{}
@@ -37,7 +39,12 @@ func (d *Databend) Connect(ctx context.Context, config backend.DataSourceInstanc
 	} else {
 		dsn = settings.DSN
 	}
-	return sql.Open("databend", dsn)
+	cfg, err := godatabend.ParseDSN(dsn)
+	if err != nil {
+		return nil, err
+	}
+	cfg.UserAgent = userAgent
+	return sql.OpenDB(cfg), nil
 }
 
 // Converters defines list of data type converters

@@ -48,6 +48,9 @@ func (d *Databend) Connect(ctx context.Context, config backend.DataSourceInstanc
 	if cfg.Params == nil {
 		cfg.Params = make(map[string]string)
 	}
+	// Databend lowercases unquoted identifiers by default. Grafana's trace panel
+	// requires exact camelCase field names (traceID, spanID, parentSpanID, etc.),
+	// so we enable case sensitivity to preserve column alias casing in query results.
 	cfg.Params["unquoted_ident_case_sensitive"] = "1"
 	return sql.OpenDB(cfg), nil
 }

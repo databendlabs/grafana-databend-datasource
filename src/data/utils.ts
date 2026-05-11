@@ -111,6 +111,8 @@ export const transformQueryResponseWithTraceAndLogLinks = (
       refId: 'Trace ID',
       editorType: EditorType.Builder,
       rawSql: '',
+      format: queryTypeToFormat(QueryType.Traces),
+      queryType: QueryType.Traces,
       builderOptions: {
         database: tracesDb,
         table: tracesTable,

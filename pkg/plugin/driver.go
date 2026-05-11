@@ -136,7 +136,7 @@ func convertJSONFieldsToString(frame *data.Frame) {
 //   - Already correct format: [{"key":"k","value":"v"}] → pass through
 func transformTraceAttributes(frame *data.Frame) {
 	for i, field := range frame.Fields {
-		if field.Type() != data.FieldTypeJSON {
+		if field.Type() != data.FieldTypeJSON && field.Type() != data.FieldTypeNullableJSON {
 			continue
 		}
 		name := field.Name
@@ -149,7 +149,19 @@ func transformTraceAttributes(frame *data.Frame) {
 				field.Set(j, json.RawMessage("[]"))
 				continue
 			}
-			raw := val.(json.RawMessage)
+			var raw json.RawMessage
+			switch v := val.(type) {
+			case json.RawMessage:
+				raw = v
+			case *json.RawMessage:
+				if v == nil {
+					field.Set(j, json.RawMessage("[]"))
+					continue
+				}
+				raw = *v
+			default:
+				continue
+			}
 			transformed := transformToKeyValueArray(raw, name)
 			frame.Fields[i].Set(j, transformed)
 		}

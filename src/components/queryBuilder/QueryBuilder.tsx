@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Select, MultiSelect, InlineField, InlineFieldRow, Input, Button, CodeEditor } from '@grafana/ui';
 import { DatabendDatasource } from '../../data/datasource';
+import { QueryType } from '../../types/sql';
 import {
   QueryBuilderOptions,
   BuilderMode,
@@ -12,6 +13,7 @@ import {
   OrderByDirection,
   AggregateColumn,
   AggregateType,
+  ColumnHint,
 } from '../../types/queryBuilder';
 
 interface QueryBuilderProps {
@@ -19,6 +21,7 @@ interface QueryBuilderProps {
   builderOptions: QueryBuilderOptions;
   onBuilderOptionsChange: (options: QueryBuilderOptions) => void;
   generatedSql: string;
+  queryType?: QueryType;
 }
 
 export const QueryBuilder: React.FC<QueryBuilderProps> = ({
@@ -26,6 +29,7 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
   builderOptions,
   onBuilderOptionsChange,
   generatedSql,
+  queryType,
 }) => {
   const [databases, setDatabases] = useState<string[]>([]);
   const [tables, setTables] = useState<string[]>([]);
@@ -70,8 +74,27 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
   };
 
   const onColumnsChange = (values: Array<SelectableValue<string>>) => {
-    const selected: SelectedColumn[] = values.map(v => ({ name: v.value || '' }));
+    const existingHints = new Map(builderOptions.columns.map((c) => [c.name, c.hint] as const));
+    const selected: SelectedColumn[] = values.map((v) => {
+      const name = v.value || '';
+      const hint = existingHints.get(name);
+      return hint ? { name, hint } : { name };
+    });
     onBuilderOptionsChange({ ...builderOptions, columns: selected });
+  };
+
+  const onColumnHintChange = (columnName: string, hint?: ColumnHint) => {
+    const nextColumns = builderOptions.columns.map((c) => {
+      if (c.name !== columnName) {
+        return c;
+      }
+      if (!hint) {
+        const { hint: _discarded, ...rest } = c;
+        return rest;
+      }
+      return { ...c, hint };
+    });
+    onBuilderOptionsChange({ ...builderOptions, columns: nextColumns });
   };
 
   const onGroupByChange = (values: Array<SelectableValue<string>>) => {
@@ -165,6 +188,29 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
     { label: 'NOT IN', value: FilterOperator.NotIn },
   ];
 
+  const hintOptionsForQueryType = (qt?: QueryType): Array<SelectableValue<ColumnHint>> => {
+    if (qt === QueryType.Logs) {
+      return [
+        { label: 'Time', value: ColumnHint.Time },
+        { label: 'Log Level', value: ColumnHint.LogLevel },
+        { label: 'Log Message', value: ColumnHint.LogMessage },
+        { label: 'Trace ID', value: ColumnHint.TraceId },
+      ];
+    }
+    if (qt === QueryType.Traces) {
+      return [
+        { label: 'Start Time', value: ColumnHint.Time },
+        { label: 'Trace ID', value: ColumnHint.TraceId },
+        { label: 'Span ID', value: ColumnHint.TraceSpanId },
+        { label: 'Parent Span ID', value: ColumnHint.TraceParentSpanId },
+        { label: 'Service Name', value: ColumnHint.TraceServiceName },
+        { label: 'Operation Name', value: ColumnHint.TraceOperationName },
+        { label: 'Duration', value: ColumnHint.TraceDurationTime },
+      ];
+    }
+    return [{ label: 'Time', value: ColumnHint.Time }];
+  };
+
   return (
     <div data-testid="query-builder">
       {/* Database & Table Selection */}
@@ -217,6 +263,32 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
           </InlineField>
         </InlineFieldRow>
       )}
+
+      {/* Column hints (Logs / Traces only) */}
+      {builderOptions.mode === BuilderMode.List &&
+        (queryType === QueryType.Logs || queryType === QueryType.Traces) &&
+        builderOptions.columns.length > 0 && (
+          <>
+            {builderOptions.columns.map((col, i) => (
+              <InlineFieldRow key={`hint-${col.name}-${i}`}>
+                <InlineField label={i === 0 ? 'Hints' : ''} labelWidth={14}>
+                  <Input width={25} value={col.name} readOnly aria-label="Hint Column" />
+                </InlineField>
+                <InlineField label="Role" labelWidth={8}>
+                  <Select
+                    width={25}
+                    options={hintOptionsForQueryType(queryType)}
+                    value={col.hint}
+                    onChange={(v) => onColumnHintChange(col.name, v.value ?? undefined)}
+                    isClearable
+                    placeholder="no hint"
+                    aria-label="Column Hint"
+                  />
+                </InlineField>
+              </InlineFieldRow>
+            ))}
+          </>
+        )}
 
       {/* Aggregates (Aggregate/Trend mode) */}
       {(builderOptions.mode === BuilderMode.Aggregate || builderOptions.mode === BuilderMode.Trend) && (

@@ -18,11 +18,11 @@ export interface DatabendQueryBase extends DataQuery {
   editorType: EditorType;
   rawSql: string;
   format?: number;
+  queryType?: QueryType;
 }
 
 export interface DatabendSqlQuery extends DatabendQueryBase {
   editorType: EditorType.SQL;
-  queryType?: QueryType;
   meta?: {
     timezone?: string;
     builderOptions?: QueryBuilderOptions;

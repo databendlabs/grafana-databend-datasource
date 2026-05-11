@@ -101,6 +101,16 @@ export const ConfigEditor: React.FC<Props> = (props) => {
             onChange={(e) => onJsonDataChange('forwardGrafanaHeaders', e.currentTarget.checked)}
           />
         </Field>
+        <Field label="Default Ad-Hoc Filter Table" description="Default table for ad-hoc filter tag keys/values">
+          <Input
+            name="defaultAdHocTable"
+            width={40}
+            value={jsonData.defaultAdHocTable || ''}
+            onChange={onUpdateDatasourceJsonDataOption(props, 'defaultAdHocTable')}
+            aria-label="Default Ad-Hoc Filter Table"
+            placeholder="my_table"
+          />
+        </Field>
       </ConfigSection>
 
       <Divider />
@@ -145,6 +155,14 @@ export const ConfigEditor: React.FC<Props> = (props) => {
               onChange={onUpdateDatasourceJsonDataOption(props, 'logsMessageColumn')}
               aria-label="Log Message Column"
               placeholder="body"
+            />
+          </Field>
+        </ConfigSubSection>
+        <ConfigSubSection title="Data Links">
+          <Field label="Show Trace Links" description="Show clickable trace links on TraceId fields in log query results">
+            <Switch
+              value={jsonData.showLogLinks !== false}
+              onChange={(e) => onJsonDataChange('showLogLinks', e.currentTarget.checked)}
             />
           </Field>
         </ConfigSubSection>
@@ -232,6 +250,14 @@ export const ConfigEditor: React.FC<Props> = (props) => {
               onChange={onUpdateDatasourceJsonDataOption(props, 'tracesStartTimeColumn')}
               aria-label="Start Time Column"
               placeholder="timestamp"
+            />
+          </Field>
+        </ConfigSubSection>
+        <ConfigSubSection title="Data Links">
+          <Field label="Show Trace Links" description="Show clickable trace visualization links on TraceId fields">
+            <Switch
+              value={jsonData.showTraceLinks !== false}
+              onChange={(e) => onJsonDataChange('showTraceLinks', e.currentTarget.checked)}
             />
           </Field>
         </ConfigSubSection>

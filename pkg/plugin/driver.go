@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/url"
 
 	godatabend "github.com/datafuselabs/databend-go"
@@ -118,9 +119,14 @@ func convertJSONFieldsToString(frame *data.Frame) {
 	}
 }
 
-// transformTraceAttributes transforms JSON object fields (tags, serviceTags) in trace frames
-// from {"k1":"v1","k2":"v2"} to [{"key":"k1","value":"v1"},{"key":"k2","value":"v2"}]
-// which is the format Grafana's trace panel expects.
+// transformTraceAttributes transforms JSON fields (tags, serviceTags) in trace frames
+// into the [{"key":"k","value":"v"}] format that Grafana's trace panel expects.
+// Supports multiple input formats:
+//   - Flat map: {"k":"v"} → [{"key":"k","value":"v"}]
+//   - OTel attribute map: {"k":{"stringValue":"v"}} → [{"key":"k","value":"v"}]
+//   - OTel attribute array: [{"key":"k","value":{"stringValue":"v"}}] → [{"key":"k","value":"v"}]
+//   - Full OTel metadata blob: auto-extracts attributes or resource.attributes
+//   - Already correct format: [{"key":"k","value":"v"}] → pass through
 func transformTraceAttributes(frame *data.Frame) {
 	for i, field := range frame.Fields {
 		if field.Type() != data.FieldTypeJSON {
@@ -137,36 +143,137 @@ func transformTraceAttributes(frame *data.Frame) {
 				continue
 			}
 			raw := val.(json.RawMessage)
-			transformed := transformObjectToKeyValueArray(raw)
+			transformed := transformToKeyValueArray(raw, name)
 			frame.Fields[i].Set(j, transformed)
 		}
 	}
 }
 
-// transformObjectToKeyValueArray converts a JSON object like {"k":"v",...}
-// into [{"key":"k","value":"v"},...] for Grafana's trace panel.
-func transformObjectToKeyValueArray(raw json.RawMessage) json.RawMessage {
+// transformToKeyValueArray converts various JSON formats into [{"key":"k","value":"v"}].
+func transformToKeyValueArray(raw json.RawMessage, fieldName string) json.RawMessage {
+	if len(raw) == 0 {
+		return json.RawMessage("[]")
+	}
+
+	// Try as array first (OTel array format or already correct)
+	var arr []interface{}
+	if err := json.Unmarshal(raw, &arr); err == nil {
+		return transformArrayFormat(arr)
+	}
+
+	// Try as object
 	var obj map[string]interface{}
-	if err := json.Unmarshal(raw, &obj); err != nil {
-		return raw
+	if err := json.Unmarshal(raw, &obj); err == nil {
+		return transformObjectFormat(obj, fieldName)
+	}
+
+	// Fallback: return empty array
+	return json.RawMessage("[]")
+}
+
+// transformArrayFormat handles [{"key":"k","value":{"stringValue":"v"}}] or [{"key":"k","value":"v"}]
+func transformArrayFormat(arr []interface{}) json.RawMessage {
+	kvPairs := make([]map[string]string, 0, len(arr))
+	for _, item := range arr {
+		m, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		key, _ := m["key"].(string)
+		if key == "" {
+			continue
+		}
+		value := unwrapOTelValue(m["value"])
+		kvPairs = append(kvPairs, map[string]string{"key": key, "value": value})
+	}
+	result, err := json.Marshal(kvPairs)
+	if err != nil {
+		return json.RawMessage("[]")
+	}
+	return json.RawMessage(result)
+}
+
+// transformObjectFormat handles {"k":"v"} or {"k":{"stringValue":"v"}}
+// Also detects full OTel metadata blobs and extracts the appropriate sub-field:
+//   - For "tags": extracts obj["attributes"]
+//   - For "serviceTags": extracts obj["resource"]["attributes"]
+func transformObjectFormat(obj map[string]interface{}, fieldName string) json.RawMessage {
+	// Detect full OTel metadata blob: has "attributes" + "resource" keys
+	if _, hasAttrs := obj["attributes"]; hasAttrs {
+		if resource, hasResource := obj["resource"]; hasResource {
+			if fieldName == "serviceTags" {
+				// Extract resource.attributes for serviceTags
+				if resMap, ok := resource.(map[string]interface{}); ok {
+					if resAttrs, ok := resMap["attributes"]; ok {
+						if resArr, ok := resAttrs.([]interface{}); ok {
+							return transformArrayFormat(resArr)
+						}
+					}
+				}
+				return json.RawMessage("[]")
+			}
+			// Extract attributes for tags
+			if attrMap, ok := obj["attributes"].(map[string]interface{}); ok {
+				return transformObjectFormat(attrMap, "")
+			}
+		}
 	}
 
 	kvPairs := make([]map[string]string, 0, len(obj))
 	for k, v := range obj {
-		var strVal string
-		switch val := v.(type) {
-		case string:
-			strVal = val
-		default:
-			b, _ := json.Marshal(val)
-			strVal = string(b)
-		}
-		kvPairs = append(kvPairs, map[string]string{"key": k, "value": strVal})
+		value := unwrapOTelValue(v)
+		kvPairs = append(kvPairs, map[string]string{"key": k, "value": value})
 	}
-
 	result, err := json.Marshal(kvPairs)
 	if err != nil {
-		return raw
+		return json.RawMessage("[]")
 	}
 	return json.RawMessage(result)
+}
+
+// unwrapOTelValue extracts the actual value from OTel protobuf JSON wrappers.
+// Handles: {"stringValue":"v"}, {"intValue":"123"}, {"boolValue":true},
+// {"doubleValue":1.5}, {"arrayValue":{...}}, {"kvlistValue":{...}}, or plain values.
+func unwrapOTelValue(v interface{}) string {
+	switch val := v.(type) {
+	case string:
+		return val
+	case float64:
+		if val == float64(int64(val)) {
+			return fmt.Sprintf("%d", int64(val))
+		}
+		return fmt.Sprintf("%g", val)
+	case bool:
+		return fmt.Sprintf("%t", val)
+	case map[string]interface{}:
+		// OTel typed value wrapper
+		if sv, ok := val["stringValue"]; ok {
+			s, _ := sv.(string)
+			return s
+		}
+		if iv, ok := val["intValue"]; ok {
+			switch n := iv.(type) {
+			case string:
+				return n
+			case float64:
+				return fmt.Sprintf("%d", int64(n))
+			}
+		}
+		if bv, ok := val["boolValue"]; ok {
+			b, _ := bv.(bool)
+			return fmt.Sprintf("%t", b)
+		}
+		if dv, ok := val["doubleValue"]; ok {
+			d, _ := dv.(float64)
+			return fmt.Sprintf("%g", d)
+		}
+		// Complex value: marshal as JSON string
+		b, _ := json.Marshal(val)
+		return string(b)
+	case nil:
+		return ""
+	default:
+		b, _ := json.Marshal(val)
+		return string(b)
+	}
 }

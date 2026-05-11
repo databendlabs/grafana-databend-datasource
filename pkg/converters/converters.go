@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -25,6 +26,8 @@ var matchRegexes = map[string]*regexp.Regexp{
 	"Nullable(Date)":    regexp.MustCompile(`^Nullable\(Date\(?`),
 	"Nullable(Decimal)": regexp.MustCompile(`^Nullable\(Decimal`),
 	"Nullable(String)":  regexp.MustCompile(`Nullable\(String`),
+	"Variant":           regexp.MustCompile(`^(Variant|Array|Map|Tuple|JSON)`),
+	"Nullable(Variant)": regexp.MustCompile(`^Nullable\((Variant|Array|Map|Tuple|JSON)`),
 }
 
 var Converters = map[string]Converter{
@@ -185,6 +188,18 @@ var Converters = map[string]Converter{
 		matchRegex: matchRegexes["Nullable(Decimal)"],
 		scanType:   reflect.PointerTo(reflect.PointerTo(reflect.TypeOf(decimal.Decimal{}))),
 	},
+	"Variant": {
+		convert:    variantConvert,
+		fieldType:  data.FieldTypeJSON,
+		matchRegex: matchRegexes["Variant"],
+		scanType:   reflect.PointerTo(reflect.TypeOf("")),
+	},
+	"Nullable(Variant)": {
+		convert:    variantNullableConvert,
+		fieldType:  data.FieldTypeNullableJSON,
+		matchRegex: matchRegexes["Nullable(Variant)"],
+		scanType:   reflect.PointerTo(reflect.PointerTo(reflect.TypeOf(""))),
+	},
 }
 
 func DatabendConverters() []sqlutil.Converter {
@@ -287,4 +302,30 @@ func bigIntNullableConvert(in interface{}) (interface{}, error) {
 	}
 	f, _ := new(big.Float).SetInt(**v).Float64()
 	return &f, nil
+}
+
+func variantConvert(in interface{}) (interface{}, error) {
+	if in == nil {
+		return json.RawMessage("null"), nil
+	}
+	v, ok := in.(*string)
+	if !ok {
+		return nil, fmt.Errorf("invalid variant - %v", in)
+	}
+	return json.RawMessage(*v), nil
+}
+
+func variantNullableConvert(in interface{}) (interface{}, error) {
+	if in == nil {
+		return (*json.RawMessage)(nil), nil
+	}
+	v, ok := in.(**string)
+	if !ok {
+		return nil, fmt.Errorf("invalid variant - %v", in)
+	}
+	if *v == nil {
+		return (*json.RawMessage)(nil), nil
+	}
+	raw := json.RawMessage(**v)
+	return &raw, nil
 }

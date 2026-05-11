@@ -235,6 +235,11 @@ function generateTraceIdSql(options: QueryBuilderOptions): string {
   const operationCol = columns.find((c) => c.hint === ColumnHint.TraceOperationName);
   const durationCol = columns.find((c) => c.hint === ColumnHint.TraceDurationTime);
   const startTimeCol = columns.find((c) => c.hint === ColumnHint.Time);
+  const tagsCol = columns.find((c) => c.hint === ColumnHint.TraceTags);
+  const serviceTagsCol = columns.find((c) => c.hint === ColumnHint.TraceServiceTags);
+  const statusCodeCol = columns.find((c) => c.hint === ColumnHint.TraceStatusCode);
+  const statusMessageCol = columns.find((c) => c.hint === ColumnHint.TraceStatusMessage);
+  const kindCol = columns.find((c) => c.hint === ColumnHint.TraceKind);
 
   const durationUnit = (options.meta?.traceDurationUnit as string) || 'ms';
   const traceId = (options.meta?.traceId as string) || '';
@@ -258,10 +263,33 @@ function generateTraceIdSql(options: QueryBuilderOptions): string {
     selectParts.push(`${operationCol.name} AS operationName`);
   }
   if (startTimeCol) {
-    selectParts.push(`${startTimeCol.name} AS startTime`);
+    selectParts.push(`TO_UNIX_TIMESTAMP(${startTimeCol.name}) * 1000 AS startTime`);
   }
   if (durationCol) {
     selectParts.push(`${convertDuration(durationCol.name, durationUnit)} AS duration`);
+  }
+  if (tagsCol) {
+    selectParts.push(`${tagsCol.name} AS tags`);
+  } else {
+    selectParts.push(`'[]' AS tags`);
+  }
+  if (serviceTagsCol) {
+    selectParts.push(`${serviceTagsCol.name} AS serviceTags`);
+  } else {
+    selectParts.push(`'[]' AS serviceTags`);
+  }
+  if (statusCodeCol) {
+    selectParts.push(`CASE WHEN ${statusCodeCol.name} IN ('Error', 'STATUS_CODE_ERROR') THEN 2 ELSE 0 END AS statusCode`);
+  } else {
+    selectParts.push(`0 AS statusCode`);
+  }
+  if (statusMessageCol) {
+    selectParts.push(`${statusMessageCol.name} AS statusMessage`);
+  } else {
+    selectParts.push(`'' AS statusMessage`);
+  }
+  if (kindCol) {
+    selectParts.push(`${kindCol.name} AS kind`);
   }
 
   const parts: string[] = [];

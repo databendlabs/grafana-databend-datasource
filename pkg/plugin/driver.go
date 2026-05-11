@@ -79,6 +79,12 @@ func (d *Databend) MutateResponse(_ context.Context, res data.Frames) (data.Fram
 		if frame.Meta == nil {
 			continue
 		}
+
+		if frame.Meta.PreferredVisualization == data.VisTypeTrace {
+			transformTraceAttributes(frame)
+			continue
+		}
+
 		// For non-logs/traces/table visualizations, convert JSON fields to string
 		if shouldConvertJSONFields(frame.Meta.PreferredVisualization) {
 			convertJSONFieldsToString(frame)
@@ -110,4 +116,57 @@ func convertJSONFieldsToString(frame *data.Frame) {
 			frame.Fields[i] = newField
 		}
 	}
+}
+
+// transformTraceAttributes transforms JSON object fields (tags, serviceTags) in trace frames
+// from {"k1":"v1","k2":"v2"} to [{"key":"k1","value":"v1"},{"key":"k2","value":"v2"}]
+// which is the format Grafana's trace panel expects.
+func transformTraceAttributes(frame *data.Frame) {
+	for i, field := range frame.Fields {
+		if field.Type() != data.FieldTypeJSON {
+			continue
+		}
+		name := field.Name
+		if name != "tags" && name != "serviceTags" {
+			continue
+		}
+		for j := 0; j < field.Len(); j++ {
+			val := field.At(j)
+			if val == nil {
+				field.Set(j, json.RawMessage("[]"))
+				continue
+			}
+			raw := val.(json.RawMessage)
+			transformed := transformObjectToKeyValueArray(raw)
+			frame.Fields[i].Set(j, transformed)
+		}
+	}
+}
+
+// transformObjectToKeyValueArray converts a JSON object like {"k":"v",...}
+// into [{"key":"k","value":"v"},...] for Grafana's trace panel.
+func transformObjectToKeyValueArray(raw json.RawMessage) json.RawMessage {
+	var obj map[string]interface{}
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		return raw
+	}
+
+	kvPairs := make([]map[string]string, 0, len(obj))
+	for k, v := range obj {
+		var strVal string
+		switch val := v.(type) {
+		case string:
+			strVal = val
+		default:
+			b, _ := json.Marshal(val)
+			strVal = string(b)
+		}
+		kvPairs = append(kvPairs, map[string]string{"key": k, "value": strVal})
+	}
+
+	result, err := json.Marshal(kvPairs)
+	if err != nil {
+		return raw
+	}
+	return json.RawMessage(result)
 }

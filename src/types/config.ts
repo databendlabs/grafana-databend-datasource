@@ -12,6 +12,7 @@ export interface DatabendConfig extends DataSourceJsonData {
   logsTimeColumn?: string;
   logsLevelColumn?: string;
   logsMessageColumn?: string;
+  showLogLinks?: boolean;
 
   // Traces
   tracesTable?: string;
@@ -22,6 +23,10 @@ export interface DatabendConfig extends DataSourceJsonData {
   tracesDurationColumn?: string;
   tracesDurationUnit?: string;
   tracesStartTimeColumn?: string;
+  showTraceLinks?: boolean;
+
+  // Ad-hoc filters
+  defaultAdHocTable?: string;
 }
 
 export interface DatabendSecureConfig {

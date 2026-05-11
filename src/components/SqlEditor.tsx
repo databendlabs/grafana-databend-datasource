@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { CodeEditor, IconButton, HorizontalGroup, Tooltip, Icon } from '@grafana/ui';
-import { DatabendQuery, QueryType } from '../types/sql';
+import { DatabendQuery, DatabendSqlQuery, EditorType, QueryType } from '../types/sql';
 import { styles } from '../styles';
 
 interface SqlEditorProps {
@@ -11,9 +11,11 @@ interface SqlEditorProps {
   onQueryTypeChange?: (queryType: QueryType) => void;
 }
 
-export const SqlEditor: React.FC<SqlEditorProps> = ({ query, onChange, onRunQuery, queryType, onQueryTypeChange }) => {
+export const SqlEditor: React.FC<SqlEditorProps> = ({ query, onChange, onRunQuery }) => {
   const editorRef = useRef<any>(null);
-  const [expanded, setExpanded] = useState<boolean>((query as any).expand || false);
+  const isSqlQuery = query.editorType === EditorType.SQL;
+  const initialExpand = isSqlQuery ? Boolean((query as DatabendSqlQuery).expand) : false;
+  const [expanded, setExpanded] = useState<boolean>(initialExpand);
 
   const saveChanges = (changes: Partial<DatabendQuery>) => {
     onChange({
@@ -50,7 +52,9 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({ query, onChange, onRunQuer
         <a
           onClick={() => {
             setExpanded(!expanded);
-            saveChanges({ expand: !expanded } as any);
+            if (isSqlQuery) {
+              saveChanges({ expand: !expanded } as Partial<DatabendSqlQuery>);
+            }
           }}
           className={styles.Common.expand}
           data-testid="code-editor-expand-button"

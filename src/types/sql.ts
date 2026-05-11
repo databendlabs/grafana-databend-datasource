@@ -62,5 +62,6 @@ export const defaultDatabendQuery: Omit<DatabendSqlQuery, 'refId'> = {
   pluginVersion: '',
   editorType: EditorType.SQL,
   rawSql: '',
+  format: queryTypeToFormat(QueryType.Table),
   expand: false,
 };

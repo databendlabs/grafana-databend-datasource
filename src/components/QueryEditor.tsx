@@ -56,12 +56,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
   const generatedSql = useMemo(() => generateSql(builderOptions), [builderOptions]);
 
   const onEditorTypeChange = (newType: EditorType) => {
+    const format = currentQuery.format ?? queryTypeToFormat(queryType);
     if (newType === EditorType.Builder) {
       onChange({
         ...currentQuery,
         editorType: EditorType.Builder,
         builderOptions,
         rawSql: generatedSql,
+        format,
       } as DatabendQuery);
     } else {
       onChange({
@@ -71,6 +73,7 @@ export const QueryEditor: React.FC<Props> = (props) => {
           ...(currentQuery.editorType === EditorType.SQL ? currentQuery.meta : undefined),
           builderOptions,
         },
+        format,
       } as DatabendQuery);
     }
     onRunQuery();
@@ -110,7 +113,9 @@ export const QueryEditor: React.FC<Props> = (props) => {
   };
 
   const onQueryChange = (updatedQuery: DatabendQuery) => {
-    onChange(updatedQuery);
+    // Ensure format is always set so the backend doesn't default to TimeSeries
+    const format = updatedQuery.format ?? queryTypeToFormat(queryType);
+    onChange({ ...updatedQuery, format } as DatabendQuery);
     onRunQuery();
   };
 

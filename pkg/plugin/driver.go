@@ -136,7 +136,8 @@ func convertJSONFieldsToString(frame *data.Frame) {
 //   - Already correct format: [{"key":"k","value":"v"}] → pass through
 func transformTraceAttributes(frame *data.Frame) {
 	for i, field := range frame.Fields {
-		if field.Type() != data.FieldTypeJSON && field.Type() != data.FieldTypeNullableJSON {
+		isNullable := field.Type() == data.FieldTypeNullableJSON
+		if field.Type() != data.FieldTypeJSON && !isNullable {
 			continue
 		}
 		name := field.Name
@@ -146,7 +147,12 @@ func transformTraceAttributes(frame *data.Frame) {
 		for j := 0; j < field.Len(); j++ {
 			val := field.At(j)
 			if val == nil {
-				field.Set(j, json.RawMessage("[]"))
+				emptyArr := json.RawMessage("[]")
+				if isNullable {
+					frame.Fields[i].Set(j, &emptyArr)
+				} else {
+					frame.Fields[i].Set(j, emptyArr)
+				}
 				continue
 			}
 			var raw json.RawMessage
@@ -155,7 +161,8 @@ func transformTraceAttributes(frame *data.Frame) {
 				raw = v
 			case *json.RawMessage:
 				if v == nil {
-					field.Set(j, json.RawMessage("[]"))
+					emptyArr := json.RawMessage("[]")
+					frame.Fields[i].Set(j, &emptyArr)
 					continue
 				}
 				raw = *v
@@ -163,7 +170,11 @@ func transformTraceAttributes(frame *data.Frame) {
 				continue
 			}
 			transformed := transformToKeyValueArray(raw, name)
-			frame.Fields[i].Set(j, transformed)
+			if isNullable {
+				frame.Fields[i].Set(j, &transformed)
+			} else {
+				frame.Fields[i].Set(j, transformed)
+			}
 		}
 	}
 }

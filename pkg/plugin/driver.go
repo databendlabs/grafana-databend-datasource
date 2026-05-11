@@ -45,6 +45,10 @@ func (d *Databend) Connect(ctx context.Context, config backend.DataSourceInstanc
 		return nil, err
 	}
 	cfg.UserAgent = userAgent
+	if cfg.Params == nil {
+		cfg.Params = make(map[string]string)
+	}
+	cfg.Params["unquoted_ident_case_sensitive"] = "1"
 	return sql.OpenDB(cfg), nil
 }
 
@@ -194,31 +198,7 @@ func transformArrayFormat(arr []interface{}) json.RawMessage {
 }
 
 // transformObjectFormat handles {"k":"v"} or {"k":{"stringValue":"v"}}
-// Also detects full OTel metadata blobs and extracts the appropriate sub-field:
-//   - For "tags": extracts obj["attributes"]
-//   - For "serviceTags": extracts obj["resource"]["attributes"]
 func transformObjectFormat(obj map[string]interface{}, fieldName string) json.RawMessage {
-	// Detect full OTel metadata blob: has "attributes" + "resource" keys
-	if _, hasAttrs := obj["attributes"]; hasAttrs {
-		if resource, hasResource := obj["resource"]; hasResource {
-			if fieldName == "serviceTags" {
-				// Extract resource.attributes for serviceTags
-				if resMap, ok := resource.(map[string]interface{}); ok {
-					if resAttrs, ok := resMap["attributes"]; ok {
-						if resArr, ok := resAttrs.([]interface{}); ok {
-							return transformArrayFormat(resArr)
-						}
-					}
-				}
-				return json.RawMessage("[]")
-			}
-			// Extract attributes for tags
-			if attrMap, ok := obj["attributes"].(map[string]interface{}); ok {
-				return transformObjectFormat(attrMap, "")
-			}
-		}
-	}
-
 	kvPairs := make([]map[string]string, 0, len(obj))
 	for k, v := range obj {
 		value := unwrapOTelValue(v)

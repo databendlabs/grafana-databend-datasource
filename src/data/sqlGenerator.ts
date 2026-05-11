@@ -270,23 +270,15 @@ function generateTraceIdSql(options: QueryBuilderOptions): string {
   }
   if (tagsCol) {
     selectParts.push(`${tagsCol.name} AS tags`);
-  } else {
-    selectParts.push(`'[]' AS tags`);
   }
   if (serviceTagsCol) {
     selectParts.push(`${serviceTagsCol.name} AS serviceTags`);
-  } else {
-    selectParts.push(`'[]' AS serviceTags`);
   }
   if (statusCodeCol) {
     selectParts.push(`CASE WHEN ${statusCodeCol.name} IN ('Error', 'STATUS_CODE_ERROR') THEN 2 ELSE 0 END AS statusCode`);
-  } else {
-    selectParts.push(`0 AS statusCode`);
   }
   if (statusMessageCol) {
     selectParts.push(`${statusMessageCol.name} AS statusMessage`);
-  } else {
-    selectParts.push(`'' AS statusMessage`);
   }
   if (kindCol) {
     selectParts.push(`${kindCol.name} AS kind`);

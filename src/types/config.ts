@@ -18,11 +18,17 @@ export interface DatabendConfig extends DataSourceJsonData {
   tracesTable?: string;
   tracesTraceIdColumn?: string;
   tracesSpanIdColumn?: string;
+  tracesParentSpanIdColumn?: string;
   tracesOperationNameColumn?: string;
   tracesServiceNameColumn?: string;
   tracesDurationColumn?: string;
   tracesDurationUnit?: string;
   tracesStartTimeColumn?: string;
+  tracesTagsColumn?: string;
+  tracesServiceTagsColumn?: string;
+  tracesStatusCodeColumn?: string;
+  tracesStatusMessageColumn?: string;
+  tracesKindColumn?: string;
   showTraceLinks?: boolean;
 
   // Ad-hoc filters

@@ -14,6 +14,11 @@ export enum ColumnHint {
   TraceServiceName = 'trace_service_name',
   TraceOperationName = 'trace_operation_name',
   TraceDurationTime = 'trace_duration_time',
+  TraceTags = 'trace_tags',
+  TraceServiceTags = 'trace_service_tags',
+  TraceStatusCode = 'trace_status_code',
+  TraceStatusMessage = 'trace_status_message',
+  TraceKind = 'trace_kind',
 }
 
 export enum OrderByDirection {

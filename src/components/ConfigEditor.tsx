@@ -252,6 +252,66 @@ export const ConfigEditor: React.FC<Props> = (props) => {
               placeholder="timestamp"
             />
           </Field>
+          <Field label="Parent Span ID Column">
+            <Input
+              name="tracesParentSpanIdColumn"
+              width={40}
+              value={jsonData.tracesParentSpanIdColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesParentSpanIdColumn')}
+              aria-label="Parent Span ID Column"
+              placeholder="parent_span_id"
+            />
+          </Field>
+          <Field label="Tags Column" description="Span attributes column (Variant/JSON)">
+            <Input
+              name="tracesTagsColumn"
+              width={40}
+              value={jsonData.tracesTagsColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesTagsColumn')}
+              aria-label="Tags Column"
+              placeholder="span_attributes"
+            />
+          </Field>
+          <Field label="Service Tags Column" description="Resource attributes column (Variant/JSON)">
+            <Input
+              name="tracesServiceTagsColumn"
+              width={40}
+              value={jsonData.tracesServiceTagsColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesServiceTagsColumn')}
+              aria-label="Service Tags Column"
+              placeholder="resource_attributes"
+            />
+          </Field>
+          <Field label="Status Code Column">
+            <Input
+              name="tracesStatusCodeColumn"
+              width={40}
+              value={jsonData.tracesStatusCodeColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesStatusCodeColumn')}
+              aria-label="Status Code Column"
+              placeholder="status_code"
+            />
+          </Field>
+          <Field label="Status Message Column">
+            <Input
+              name="tracesStatusMessageColumn"
+              width={40}
+              value={jsonData.tracesStatusMessageColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesStatusMessageColumn')}
+              aria-label="Status Message Column"
+              placeholder="status_message"
+            />
+          </Field>
+          <Field label="Kind Column" description="Span kind column">
+            <Input
+              name="tracesKindColumn"
+              width={40}
+              value={jsonData.tracesKindColumn || ''}
+              onChange={onUpdateDatasourceJsonDataOption(props, 'tracesKindColumn')}
+              aria-label="Kind Column"
+              placeholder="span_kind"
+            />
+          </Field>
         </ConfigSubSection>
         <ConfigSubSection title="Data Links">
           <Field label="Show Trace Links" description="Show clickable trace visualization links on TraceId fields">

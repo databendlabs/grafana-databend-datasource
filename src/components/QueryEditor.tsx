@@ -135,7 +135,6 @@ export const QueryEditor: React.FC<Props> = (props) => {
       rawSql: newSql,
       format: queryTypeToFormat(builderQueryType),
     } as DatabendQuery);
-    onRunQuery();
   };
 
   return (
@@ -177,6 +176,7 @@ export const QueryEditor: React.FC<Props> = (props) => {
           onBuilderOptionsChange={onBuilderOptionsChange}
           generatedSql={generatedSql}
           queryType={queryType}
+          onRunQuery={onRunQuery}
         />
       )}
     </>

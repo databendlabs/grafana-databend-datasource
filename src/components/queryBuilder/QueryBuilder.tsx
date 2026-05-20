@@ -126,6 +126,17 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
     onBuilderOptionsChange({ ...builderOptions, filters });
   };
 
+  const onAddTimeRangeFilter = () => {
+    const timeColumn = builderOptions.columns.find((c) => c.hint === ColumnHint.Time)?.name || '';
+    const newFilter: Filter = {
+      key: timeColumn,
+      operator: FilterOperator.WithInGrafanaTimeRange,
+      value: '',
+    };
+    const filters = [...(builderOptions.filters || []), newFilter];
+    onBuilderOptionsChange({ ...builderOptions, filters });
+  };
+
   const onAddAggregate = () => {
     const newAgg: AggregateColumn = { column: '*', aggregateType: AggregateType.Count };
     const aggregates = [...(builderOptions.aggregates || []), newAgg];
@@ -176,6 +187,7 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
   ];
 
   const filterOperatorOptions: Array<SelectableValue<FilterOperator>> = [
+    { label: 'Within dashboard time range', value: FilterOperator.WithInGrafanaTimeRange },
     { label: '=', value: FilterOperator.Equals },
     { label: '!=', value: FilterOperator.NotEquals },
     { label: '<', value: FilterOperator.LessThan },
@@ -370,7 +382,9 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
               aria-label="Filter Operator"
             />
           </InlineField>
-          {filter.operator !== FilterOperator.IsNull && filter.operator !== FilterOperator.IsNotNull && (
+          {filter.operator !== FilterOperator.IsNull &&
+            filter.operator !== FilterOperator.IsNotNull &&
+            filter.operator !== FilterOperator.WithInGrafanaTimeRange && (
             <InlineField label="">
               <Input
                 width={20}
@@ -390,6 +404,9 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
             Add Filter
           </Button>
         </InlineField>
+        <Button variant="secondary" size="sm" icon="clock-nine" onClick={onAddTimeRangeFilter}>
+          Add dashboard time range
+        </Button>
       </InlineFieldRow>
 
       {/* Order By */}

@@ -49,7 +49,6 @@ export enum FilterOperator {
   IsNull = 'IS NULL',
   IsNotNull = 'IS NOT NULL',
   WithInGrafanaTimeRange = 'WITH IN DASHBOARD TIME RANGE',
-  OutsideGrafanaTimeRange = 'OUTSIDE DASHBOARD TIME RANGE',
 }
 
 export interface SelectedColumn {

@@ -22,6 +22,7 @@ interface QueryBuilderProps {
   onBuilderOptionsChange: (options: QueryBuilderOptions) => void;
   generatedSql: string;
   queryType?: QueryType;
+  onRunQuery: () => void;
 }
 
 export const QueryBuilder: React.FC<QueryBuilderProps> = ({
@@ -30,6 +31,7 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
   onBuilderOptionsChange,
   generatedSql,
   queryType,
+  onRunQuery,
 }) => {
   const [databases, setDatabases] = useState<string[]>([]);
   const [tables, setTables] = useState<string[]>([]);
@@ -436,6 +438,9 @@ export const QueryBuilder: React.FC<QueryBuilderProps> = ({
             aria-label="Limit"
           />
         </InlineField>
+        <Button variant="primary" size="sm" icon="play" onClick={onRunQuery}>
+          Run query
+        </Button>
       </InlineFieldRow>
 
       {/* SQL Preview */}

@@ -4,6 +4,7 @@ import {
   AggregateType,
   ColumnHint,
   Filter,
+  FilterOperator,
   SelectedColumn,
 } from 'types/queryBuilder';
 
@@ -343,6 +344,8 @@ function buildFilterSql(filter: Filter): string {
   }
   const { key, operator, value } = filter;
   switch (operator) {
+    case FilterOperator.WithInGrafanaTimeRange:
+      return `$__timeFilter(${key})`;
     case 'IS NULL':
     case 'IS NOT NULL':
       return `${key} ${operator}`;

@@ -1,6 +1,6 @@
 {
   "name": "datasource-databend",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Grafana datasource plugin for Databend",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
@@ -69,7 +69,8 @@
   },
   "pnpm": {
     "overrides": {
-      "immutable": ">=5.1.5"
+      "immutable": ">=5.1.5",
+      "js-cookie": "3.0.7"
     }
   },
   "packageManager": "pnpm@10.11.0"
